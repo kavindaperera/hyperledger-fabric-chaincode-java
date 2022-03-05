@@ -14,9 +14,11 @@ public final class AgreementRepository implements ContractInterface {
 
     private final Genson genson = new Genson();
 
-    /**This method will be call only the first time that the chaincode is deployed,
+    /**
+     * This method will be call only the first time that the chaincode is deployed,
      * and will create an agreement to test that the query is working properly.
      * In a real use case, this action could be avoided.
+     *
      * @param ctx
      */
     @Transaction()
@@ -28,12 +30,18 @@ public final class AgreementRepository implements ContractInterface {
         stub.putStringState("ARG001", agreementState);
     }
 
+    /**
+     * Returns the agreement stored in the ledger
+     * @param ctx
+     * @param key
+     * @return agreement stored in the ledger
+     */
     @Transaction()
     public Agreement getAgreement(final Context ctx, String key) {
         ChaincodeStub stub = ctx.getStub();
         String agreementState = stub.getStringState(key);
 
-        if (agreementState.isEmpty()){
+        if (agreementState.isEmpty()) {
             String errorMessage = String.format("Agreement %s does not exist", key);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, "Agreement not found");
@@ -44,6 +52,33 @@ public final class AgreementRepository implements ContractInterface {
         return agreement;
     }
 
+    /**
+     * This method will receive the parameters to create a new agreement, and persists it on the ledger,
+     * in case that do not exist.
+     * @param ctx
+     * @param key
+     * @param party1
+     * @param party2
+     * @param status
+     * @return new agreement
+     */
+    @Transaction()
+    public Agreement createAgreement(final Context ctx, final String key, final String party1, final String party2, final String status) {
+        ChaincodeStub stub = ctx.getStub();
 
+        String agreementState = stub.getStringState(key);
+
+        if (!agreementState.isEmpty()){
+            String errorMessage = String.format("Agreement %s already exists", key);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, "Agreement already exists");
+        }
+
+        Agreement agreement = new Agreement(party1, party2, status);
+        agreementState = genson.serialize(agreement);
+        stub.putStringState(key, agreementState);
+
+        return agreement;
+    }
 
 }
