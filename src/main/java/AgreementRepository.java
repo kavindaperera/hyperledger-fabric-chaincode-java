@@ -19,7 +19,7 @@ public final class AgreementRepository implements ContractInterface {
      * and will create an agreement to test that the query is working properly.
      * In a real use case, this action could be avoided.
      *
-     * @param ctx
+     * @param ctx transaction context
      */
     @Transaction()
     public void initLedger(final Context ctx) {
@@ -32,7 +32,7 @@ public final class AgreementRepository implements ContractInterface {
 
     /**
      * Returns the agreement stored in the ledger
-     * @param ctx
+     * @param ctx transaction context
      * @param key
      * @return agreement stored in the ledger
      */
@@ -55,11 +55,11 @@ public final class AgreementRepository implements ContractInterface {
     /**
      * This method will receive the parameters to create a new agreement, and persists it on the ledger,
      * in case that do not exist.
-     * @param ctx
+     * @param ctx transaction context
      * @param key
      * @param party1
      * @param party2
-     * @param status
+     * @param status agreement status
      * @return new agreement
      */
     @Transaction()
@@ -79,6 +79,34 @@ public final class AgreementRepository implements ContractInterface {
         stub.putStringState(key, agreementState);
 
         return agreement;
+    }
+
+    /**
+     * This method will receive the new agreement status, and change it on the agreement.
+     * @param ctx transaction context
+     * @param key
+     * @param newStatus agreement status
+     * @return new agreement
+     */
+    @Transaction()
+    public Agreement changeAgreementStatus(final Context ctx, final String key, final String newStatus) {
+        ChaincodeStub stub = ctx.getStub();
+
+        String agreementState = stub.getStringState(key);
+
+        if (agreementState.isEmpty()) {
+            String errorMessage = String.format("Agreement %s does not exist", key);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, "Agreement not found");
+        }
+
+        Agreement agreement = genson.deserialize(agreementState, Agreement.class);
+
+        Agreement newAgreement = new Agreement(agreement.getParty1(), agreement.getParty2(), agreement.getStatus());
+        String newAgreementState = genson.serialize(newAgreement);
+        stub.putStringState(key, newAgreementState);
+
+        return newAgreement;
     }
 
 }
