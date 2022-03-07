@@ -1,3 +1,7 @@
+package agreements;
+
+import agreements.Agreement;
+import agreements.AgreementRepository;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;

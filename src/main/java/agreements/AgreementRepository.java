@@ -1,3 +1,5 @@
+package agreements;
+
 import com.owlike.genson.Genson;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
